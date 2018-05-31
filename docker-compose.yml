@@ -1,0 +1,51 @@
+version: "3"
+services:
+  #NGINX Webserver with PHP-FMP
+  webserver:
+    build:
+      context: ./docker/nginx/
+      dockerfile: Dockerfile.nginx
+    volumes:
+      - ./dolibarr:/var/www/dolibarr/
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+    networks:
+      - webnet
+    restart: always
+  # PHP-FMP
+  php:
+    build:
+      context: ./docker/php/
+      dockerfile: Dockerfile.php
+    volumes:
+      - ./dolibarr:/var/www/dolibarr/
+    depends_on:
+      - db
+    networks:
+      - webnet
+    restart: always
+  # MYSQL 5.7
+  db:
+    image: mysql:5.7
+    volumes:
+      - ./dbdata:/var/lib/mysql/
+    environment:
+      MYSQL_ROOT_PASSWORD: "RootPassDoli@2019"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    networks:
+      - webnet
+    restart: always
+  # For dev only remove or comment on production
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    networks:
+      - webnet
+    restart: always
+networks:
+  webnet:
